@@ -60,13 +60,7 @@ final class ExchangeController {
         request.httpBody = theJSONData
         
         session.dataTask(with: request) { (data, resp, error) in
-            
-            if error != nil {
-                print("Error: \(error?.localizedDescription)")
-            }
-            
-            print("Success")
-            
+            print("Done")
         }.resume()
         
         tickers["TAAS"] = "13.45"
@@ -107,23 +101,8 @@ final class ExchangeController {
         let group = DispatchGroup()
         var tickerArray = [[String : AnyObject]]()
         
-        var str = [String : Any]()
-        
-        //        getCAP()
-        
-        
-        var ourTickers = [String : Double]()
+   
         var tickers = [String : String]()
-
-        // 1. Get saved tickers
-        group.enter()
-        getOurTickers { (arr) in
-            if let array = arr {
-                ourTickers = array
-                group.leave()
-            }
-        }
-        group.wait()
         
         // 2. Get tickers from exchange
         group.enter()
@@ -135,16 +114,17 @@ final class ExchangeController {
         }
         group.wait()
         
-        //        getBinanceTickers { tickers in
-        //
-        //            if let tic = tickers {
-        //                tickerArray = tic
-        //                group.leave()
-        //            }
-        //
-        //            //            tickerArray = tickers!
-        //
-        //        }
+                getBinanceTickers { tickers in
+        
+                    if let tic = tickers {
+                        tickerArray = tic
+                        group.leave()
+                    }
+        
+//                                tickerArray = tickers!
+        
+                }
+        print(tickerArray)
 
         
         let theJSONData = try? JSONSerialization.data(withJSONObject: tickers, options: [.prettyPrinted])
@@ -152,24 +132,20 @@ final class ExchangeController {
         let theJSONText = String(data: theJSONData!, encoding: .utf8)
         
         
-//        let session = URLSession.shared
-//        let url = URL(string: "https://fantasyfootball-f0d7d.firebaseio.com/binance.json")
-//
-//        var request = URLRequest(url: url!)
-//        request.httpMethod = "PUT"
-//
-//        request.httpBody = theJSONData
-//
-//        session.dataTask(with: request) { (data, resp, error) in
-//
-//
-//            print(resp?.description)
-//
-//        }.resume()
+        let session = URLSession.shared
+        let url = URL(string: "https://fantasyfootball-f0d7d.firebaseio.com/binance.json")
+
+        var request = URLRequest(url: url!)
+        request.httpMethod = "PUT"
+
+        request.httpBody = theJSONData
+
+        session.dataTask(with: request) { (data, resp, error) in
+
+        }.resume()
         
-//        return theJSONText!
+        return theJSONText!
         
-        return ""
     }
     
     
@@ -236,7 +212,6 @@ final class ExchangeController {
                 do {
                     
                     var usdPrice: Double = 0
-                    var yesterdayPrice: Double = 0
                     
                     guard let array = try JSONSerialization.jsonObject(with: dat, options: []) as? [[String : Any]] else {return}
                     
@@ -250,10 +225,9 @@ final class ExchangeController {
                         return false
                     }).map({ dict -> Void in
                         
-                        if let price = dict["weightedAvgPrice"] as? String, let change = dict["priceChange"] as? String {
+                        if let price = dict["weightedAvgPrice"] as? String {
                             
                             usdPrice = Double(price)!
-                            yesterdayPrice = Double(price)! - Double(change)!
                             
                         }
                         
@@ -595,6 +569,7 @@ final class ExchangeController {
                         let name = dict["name"] as! String
                         
                         print(name)
+                        print(symbol)
                         
                     })
                     
